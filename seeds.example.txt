@@ -1,0 +1,26 @@
+# Seeds: one URL per line. Seeds are always fetched, so use HUB pages that link
+# straight to real content (a section index), not a site's home page.
+# Starting at home pages, a 300-page crawl filled up with tag listings and
+# "What's new" pages for 10 Python versions before reaching any real article.
+#
+#   allow: <URL prefix>   only follow discovered links that start with one of these
+#   deny:  <regex>        never follow links matching this
+#
+# Check each site's robots.txt first. realpython.com was dropped: it answers
+# this crawler with HTTP 403.
+
+# Python docs (current version only): library reference, tutorial, how-tos, FAQ
+https://docs.python.org/3/library/index.html
+https://docs.python.org/3/tutorial/index.html
+https://docs.python.org/3/howto/index.html
+https://docs.python.org/3/faq/index.html
+allow: https://docs.python.org/3/library/
+allow: https://docs.python.org/3/tutorial/
+allow: https://docs.python.org/3/howto/
+allow: https://docs.python.org/3/faq/
+
+# martinfowler.com: the tag index links to every bliki post and article
+# (/articles/ itself returns 403 and /bliki/ is not an index)
+https://martinfowler.com/tags/index.html
+allow: https://martinfowler.com/bliki/
+allow: https://martinfowler.com/articles/

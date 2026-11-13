@@ -1,0 +1,68 @@
+# The whole app with one command:
+#   docker compose up --build        -> http://localhost:8080
+#
+# Only `web` publishes a port. api, server and mongo talk on compose's private
+# network by service name (http://api:8000, mongodb://mongo:27017).
+#
+# Needs a built index in ./data/index (python -m indexer.build, indexer.embed, retrieval.hnsw).
+# LLM settings come from your shell or a .env file next to this one (see .env.example);
+# with nothing set it runs the fake LLM, which needs no key.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    environment:
+      MP_INDEX: /app/data/index
+      MP_LLM: ${MP_LLM:-fake}
+      MP_MODEL: ${MP_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    volumes:
+      - ./data/index:/app/data/index:ro
+    restart: unless-stopped
+
+  server:
+    build: ./server
+    environment:
+      HOST: 0.0.0.0
+      PORT: "3001"
+      RETRIEVAL_URL: http://api:8000
+      MONGO_URL: mongodb://mongo:27017
+      MONGO_DB: miniperplexity
+    depends_on:
+      api:
+        condition: service_healthy     # the index takes ~15 s to load; don't route questions before that
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    ports:
+      - "127.0.0.1:8080:80"            # this machine only; drop 127.0.0.1 to expose it on your network
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:8
+    # a tiny init as PID 1 reaps exited health-check processes; without it, timed-out
+    # mongosh checks were left as zombies and Docker could no longer stop the container
+    init: true
+    volumes:
+      - mongo-data:/data/db            # separate from the dev container's mp-mongo-data volume
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      # mongosh boots a whole Node.js runtime per check: measured 2-8 s on a busy laptop,
+      # so a 5 s timeout marked a working database "unhealthy" and blocked the stack
+      interval: 15s
+      timeout: 20s
+      start_period: 40s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

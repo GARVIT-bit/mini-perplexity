@@ -1,0 +1,12 @@
+data/
+__pycache__/
+.venv/
+*.pyc
+.pytest_cache/
+.env
+node_modules/
+dist/
+# raw eval answers include full passages copied from crawled pages (copyrighted site text): keep local
+bench/results/answers.jsonl
+# personal working notes for Claude Code: kept local
+CLAUDE.md

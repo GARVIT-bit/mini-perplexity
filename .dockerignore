@@ -1,0 +1,17 @@
+# The API image's build context is the repo root: keep it small and secret-free.
+# (The index is mounted at runtime, never copied in.)
+.venv/
+data/
+**/node_modules/
+**/dist/
+**/__pycache__/
+.pytest_cache/
+bench/
+tests/
+crawler/
+web/
+server/
+.claude/
+*.log
+.env
+.env.*

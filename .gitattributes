@@ -1,0 +1,6 @@
+# Store and check out text files with LF endings on every OS: the Dockerfiles, nginx.conf
+# and scripts run inside Linux containers, where CRLF line endings can break them.
+* text=auto eol=lf
+*.npy binary
+*.bin binary
+*.gz binary
